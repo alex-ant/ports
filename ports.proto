@@ -3,13 +3,13 @@ syntax = "proto3";
 option go_package = "ports;ports";
 
 message PortInfo{
-    string name = 1;
-    string city = 2;
-    string country = 3;
-    repeated string alias = 4;
-    repeated string regions = 5;
-    float lat = 6;
-    float lng = 7;
+    string id = 1;
+    string name = 2;
+    string city = 3;
+    string country = 4;
+    repeated string alias = 5;
+    repeated string regions = 6;
+    repeated float coordinates = 7;
     string province = 8;
     string timezone = 9;
     repeated string unlocs = 10;

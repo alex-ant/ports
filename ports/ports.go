@@ -2,12 +2,29 @@ package ports
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 )
 
+// Storage defines storage interface.
+type Storage interface {
+	InsertPortInfo(pi *PortInfo) error
+}
+
 // Server defines ports gRPC server.
 type Server struct {
+	storage Storage
+}
+
+// NewServer returns new Server.
+func NewServer(storage Storage) (*Server, error) {
+	if storage == nil {
+		return nil, errors.New("empty storage interface provided")
+	}
+
+	return &Server{
+		storage: storage,
+	}, nil
 }
 
 func (s *Server) mustEmbedUnimplementedPortServiceServer() {}
@@ -19,12 +36,10 @@ func (s *Server) Ping(context.Context, *Empty) (*Empty, error) {
 
 // StorePortInfo stores incoming port info into the database.
 func (s *Server) StorePortInfo(ctx context.Context, pi *PortInfo) (*Empty, error) {
-	piB, piBErr := json.Marshal(*pi)
-	if piBErr != nil {
-		return nil, fmt.Errorf("failed to marshal pi: %v", piBErr)
+	insertErr := s.storage.InsertPortInfo(pi)
+	if insertErr != nil {
+		return nil, fmt.Errorf("failed to insert port info: %v", insertErr)
 	}
-
-	fmt.Println("===>> received port info:", string(piB))
 
 	return new(Empty), nil
 }

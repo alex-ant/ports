@@ -38,9 +38,12 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	ps := ports.Server{}
+	ps, psErr := ports.NewServer(dbClient)
+	if lisErr != nil {
+		log.Fatalf("failed to initialize ports gRPC server: %v", psErr)
+	}
 
-	ports.RegisterPortServiceServer(grpcServer, &ps)
+	ports.RegisterPortServiceServer(grpcServer, ps)
 
 	go func() {
 		serveErr := grpcServer.Serve(lis)

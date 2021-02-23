@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/alex-ant/ports/port"
+	"github.com/alex-ant/ports/ports"
 )
 
 // Reader contains source file reader info.
@@ -31,7 +31,7 @@ func NewReader(filePath string) (*Reader, error) {
 	}, nil
 }
 
-func (r *Reader) Read(handler func(id string, pi port.Info) error) error {
+func (r *Reader) Read(handler func(pi *ports.PortInfo) error) error {
 	// Open source file.
 	f, fErr := os.Open(r.filePath)
 	if fErr != nil {
@@ -56,7 +56,7 @@ func (r *Reader) Read(handler func(id string, pi port.Info) error) error {
 		// Extract port info value map.
 		for dec.More() {
 			var m interface{}
-			var pi port.Info
+			var pi ports.PortInfo
 			if err := dec.Decode(&m); err == io.EOF {
 				break
 			} else if err != nil {
@@ -73,8 +73,11 @@ func (r *Reader) Read(handler func(id string, pi port.Info) error) error {
 				return fmt.Errorf("failed to unmarshal port item map: %v", err)
 			}
 
+			// Save port ID.
+			pi.Id = tt.(string)
+
 			// Pass the retrieved port info into the handler.
-			err = handler(tt.(string), pi)
+			err = handler(&pi)
 			if err != nil {
 				return fmt.Errorf("handler error: %v", err)
 			}

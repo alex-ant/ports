@@ -1,18 +1,12 @@
 package db
 
 import (
-	"errors"
-
-	"github.com/alex-ant/ports/port"
+	"github.com/alex-ant/ports/ports"
 )
 
 // InsertPortInfo stores provided port info into the DB replacing the respective
 // row on duplicate port id.
-func (c *Client) InsertPortInfo(id string, pi *port.Info) error {
-	if id == "" {
-		return errors.New("empty port id provided")
-	}
-
+func (c *Client) InsertPortInfo(pi *ports.PortInfo) error {
 	stmt := `
 	INSERT INTO ports
 				(id,
@@ -55,7 +49,7 @@ func (c *Client) InsertPortInfo(id string, pi *port.Info) error {
 
 	_, err := c.pool.Exec(
 		stmt,
-		id,
+		pi.Id,
 		pi.Name,
 		pi.City,
 		pi.Country,

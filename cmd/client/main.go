@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/alex-ant/ports/config"
-	"github.com/alex-ant/ports/port"
 	"github.com/alex-ant/ports/ports"
 	"github.com/alex-ant/ports/source"
 	log "github.com/sirupsen/logrus"
@@ -68,20 +67,8 @@ func main() {
 		log.Fatalf("failed to init source file reader: %v", srErr)
 	}
 
-	readErr := sr.Read(func(id string, pi port.Info) error {
-		_, storeErr := c.StorePortInfo(context.Background(), &ports.PortInfo{
-			Name:     pi.Name,
-			City:     pi.City,
-			Country:  pi.Country,
-			Alias:    pi.Alias,
-			Regions:  pi.Regions,
-			Lat:      pi.Coordinates[0],
-			Lng:      pi.Coordinates[1],
-			Province: pi.Province,
-			Timezone: pi.Timezone,
-			Unlocs:   pi.Unlocs,
-			Code:     pi.Code,
-		})
+	readErr := sr.Read(func(pi *ports.PortInfo) error {
+		_, storeErr := c.StorePortInfo(context.Background(), pi)
 		return storeErr
 	})
 	if readErr != nil {

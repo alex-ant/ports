@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/alex-ant/ports/port"
+	"github.com/alex-ant/ports/ports"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,7 +12,7 @@ func TestReader(t *testing.T) {
 	// Define test cases.
 	cases := []struct {
 		sourceFile       string
-		expectedContents map[string]port.Info
+		expectedContents map[string]*ports.PortInfo
 		expectedError    string
 	}{
 		{
@@ -21,26 +21,28 @@ func TestReader(t *testing.T) {
 		},
 		{
 			sourceFile: "ports_test.json",
-			expectedContents: map[string]port.Info{
+			expectedContents: map[string]*ports.PortInfo{
 				"AEAJM": {
+					Id:          "AEAJM",
 					Name:        "Ajman",
 					City:        "Ajman",
 					Country:     "United Arab Emirates",
 					Alias:       []string{},
 					Regions:     []string{},
-					Coordinates: [2]float32{55.5136433, 25.4052165},
+					Coordinates: []float32{55.5136433, 25.4052165},
 					Province:    "Ajman",
 					Timezone:    "Asia/Dubai",
 					Unlocs:      []string{"AEAJM"},
 					Code:        "52000",
 				},
 				"AEAUH": {
+					Id:          "AEAUH",
 					Name:        "Abu Dhabi",
 					City:        "Abu Dhabi",
 					Country:     "United Arab Emirates",
 					Alias:       []string{},
 					Regions:     []string{},
-					Coordinates: [2]float32{54.37, 24.47},
+					Coordinates: []float32{54.37, 24.47},
 					Province:    "Abu Z¸aby [Abu Dhabi]",
 					Timezone:    "Asia/Dubai",
 					Unlocs:      []string{"AEAUH"},
@@ -65,11 +67,11 @@ func TestReader(t *testing.T) {
 			require.NoError(t, rErr)
 
 			// Define a map of expected results.
-			resMap := make(map[string]port.Info)
+			resMap := make(map[string]*ports.PortInfo)
 
 			// Populate the map.
-			readErr := r.Read(func(id string, pi port.Info) error {
-				resMap[id] = pi
+			readErr := r.Read(func(pi *ports.PortInfo) error {
+				resMap[pi.Id] = pi
 				return nil
 			})
 			require.NoError(t, readErr)
