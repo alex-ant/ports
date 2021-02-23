@@ -1,0 +1,34 @@
+version: "3.1"
+services:
+  ports-postgres:
+    image: postgres:13.2
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ports
+    ports:
+      - "5432:5432"
+
+  ports-server:
+    build:
+      context: ./
+      dockerfile: Dockerfile-server
+    depends_on:
+      - ports-postgres
+    environment:
+      - DB_USER=postgres
+      - DB_PASS=postgres
+      - DB_NAME=ports
+      - DB_HOST=ports-postgres
+      - GRPC_PORT=9000
+
+  ports-client:
+    build:
+      context: ./
+      dockerfile: Dockerfile-client
+    depends_on:
+      - ports-server
+    environment:
+      - SERVER_HOST=ports-server
+      - GRPC_PORT=9000
+      - SOURCE_FILE=ports.json

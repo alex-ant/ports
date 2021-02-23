@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "ports;ports";
+
+message PortInfo{
+    string name = 1;
+    string city = 2;
+    string country = 3;
+    repeated string alias = 4;
+    repeated string regions = 5;
+    float lat = 6;
+    float lng = 7;
+    string province = 8;
+    string timezone = 9;
+    repeated string unlocs = 10;
+    string code = 11;
+}
+
+message Empty {}
+
+service PortService{
+    rpc StorePortInfo(PortInfo) returns (Empty) {}
+    rpc Ping(Empty) returns (Empty) {}
+}
+

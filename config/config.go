@@ -2,9 +2,9 @@ package config
 
 import (
 	"flag"
-	"log"
 
 	"github.com/alex-ant/envs"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -16,10 +16,13 @@ var (
 	DBPort    = flag.Int("db-port", 5432, "DB port")
 	DBName    = flag.String("db-name", "ports", "DB name")
 	DBTimeout = flag.Int("db-timeout", 30, "DB connection timeout in seconds")
+
+	GRPCPort   = flag.Int("grpc-port", 9000, "gPRC connection port")
+	ServerHost = flag.String("server-host", "ports-server", "gRPC server host")
 )
 
 // Parse parses the incomning flags and extracts the environment variables.
-func Parse() {
+func init() {
 	// Parse flags if not parsed already.
 	if !flag.Parsed() {
 		flag.Parse()

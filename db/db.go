@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -13,31 +12,31 @@ import (
 	"github.com/gobuffalo/packr"
 	"github.com/jackc/pgx"
 	migrate "github.com/rubenv/sql-migrate"
+	log "github.com/sirupsen/logrus"
 )
 
-const (
-	migrationsDir   string = "./migrations"
-	migrationsTable string = "ports-migrations"
-)
+const migrationsTable string = "ports-migrations"
 
 // Client contains connection data.
 type Client struct {
-	user   string
-	pass   string
-	host   string
-	port   int
-	dbName string
-	pool   *pgx.ConnPool
+	user          string
+	pass          string
+	host          string
+	port          int
+	dbName        string
+	pool          *pgx.ConnPool
+	migrationsBox packr.Box
 }
 
 // New returns new Client.
-func New(user, pass, host string, port int, dbName string, timeout int) (c *Client, err error) {
+func New(user, pass, host string, port int, dbName string, timeout int, migrationsBox packr.Box) (c *Client, err error) {
 	c = &Client{
-		user:   user,
-		pass:   pass,
-		host:   host,
-		port:   port,
-		dbName: dbName,
+		user:          user,
+		pass:          pass,
+		host:          host,
+		port:          port,
+		dbName:        dbName,
+		migrationsBox: migrationsBox,
 	}
 
 	// Verify the connection.
@@ -81,7 +80,7 @@ func New(user, pass, host string, port int, dbName string, timeout int) (c *Clie
 	}
 
 	// Run migrations.
-	err = runDatabaseMigrations(user, pass, host, port, dbName)
+	err = c.runDatabaseMigrations(user, pass, host, port, dbName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run DB migrations: %v", err)
 	}
@@ -89,7 +88,7 @@ func New(user, pass, host string, port int, dbName string, timeout int) (c *Clie
 	return
 }
 
-func runDatabaseMigrations(user, pass, host string, port int, dbName string) error {
+func (c *Client) runDatabaseMigrations(user, pass, host string, port int, dbName string) error {
 	var db *sql.DB
 	var dbErr error
 
@@ -103,7 +102,7 @@ func runDatabaseMigrations(user, pass, host string, port int, dbName string) err
 		}
 
 		// Attempt to connect without SSL.
-		fmt.Println("SSL is not enabled in DB, connecting without it")
+		log.Println("SSL is not enabled in DB, connecting without it")
 
 		db, dbErr = sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, pass, dbName))
 		if dbErr != nil {
@@ -113,7 +112,7 @@ func runDatabaseMigrations(user, pass, host string, port int, dbName string) err
 	defer db.Close()
 
 	migrations := &migrate.PackrMigrationSource{
-		Box: packr.NewBox(migrationsDir),
+		Box: c.migrationsBox,
 	}
 
 	log.Println("running migrations")

@@ -1,15 +1,67 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/alex-ant/ports/config"
 	"github.com/alex-ant/ports/port"
+	"github.com/alex-ant/ports/ports"
 	"github.com/alex-ant/ports/source"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 func main() {
+	// Establish client gRPC connection.
+	grpcConn, grpcConnErr := grpc.Dial(fmt.Sprintf("%s:%d", *config.ServerHost, *config.GRPCPort), grpc.WithInsecure())
+	if grpcConnErr != nil {
+		log.Fatalf("failed to establish client gRPC connection: %v", grpcConnErr)
+	}
+
+	c := ports.NewPortServiceClient(grpcConn)
+
+	// Ping server, wait for it to become alive.
+	for {
+		_, pingErr := c.Ping(context.Background(), new(ports.Empty))
+		if pingErr != nil {
+			log.Println("gRPC server ping failed, retrying in 1 second")
+			time.Sleep(time.Second)
+		} else {
+			log.Println("gRPC connection established")
+			break
+		}
+	}
+
+	// Shut down on SIGINT and SIGTERM.
+	shutdown := func() {
+		log.Println("Shutting down gracefully..")
+
+		// Close gRPC client connection.
+		grpcConn.Close()
+
+		log.Println("terminating process")
+		os.Exit(0)
+	}
+
+	go func() {
+		intChan := make(chan os.Signal)
+		signal.Notify(intChan, syscall.SIGINT, syscall.SIGTERM)
+		<-intChan
+		go shutdown()
+
+		// Another signal will force process termination.
+		signal.Notify(intChan, syscall.SIGINT, syscall.SIGTERM)
+		<-intChan
+		os.Exit(0)
+	}()
+
+	log.Println("Successfully started")
+
 	// Read source file.
 	sr, srErr := source.NewReader(*config.SourceFile)
 	if srErr != nil {
@@ -17,10 +69,25 @@ func main() {
 	}
 
 	readErr := sr.Read(func(id string, pi port.Info) error {
-		fmt.Println(id, pi)
-		return nil
+		_, storeErr := c.StorePortInfo(context.Background(), &ports.PortInfo{
+			Name:     pi.Name,
+			City:     pi.City,
+			Country:  pi.Country,
+			Alias:    pi.Alias,
+			Regions:  pi.Regions,
+			Lat:      pi.Coordinates[0],
+			Lng:      pi.Coordinates[1],
+			Province: pi.Province,
+			Timezone: pi.Timezone,
+			Unlocs:   pi.Unlocs,
+			Code:     pi.Code,
+		})
+		return storeErr
 	})
 	if readErr != nil {
 		log.Fatalf("failed to read source file: %v", readErr)
 	}
+
+	// Keep the process running.
+	select {}
 }

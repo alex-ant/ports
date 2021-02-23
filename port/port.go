@@ -7,7 +7,7 @@ type Info struct {
 	Country     string     `json:"country"`
 	Alias       []string   `json:"alias"`
 	Regions     []string   `json:"regions"`
-	Coordinates [2]float64 `json:"coordinates"`
+	Coordinates [2]float32 `json:"coordinates"`
 	Province    string     `json:"province"`
 	Timezone    string     `json:"timezone"`
 	Unlocs      []string   `json:"unlocs"`
