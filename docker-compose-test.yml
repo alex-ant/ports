@@ -4,5 +4,14 @@ services:
     image: golang:1.16
     volumes:
       - "./:/go/src/github.com/alex-ant/ports"
+    depends_on:
+      - ports-test-postgres
     working_dir: /go/src/github.com/alex-ant/ports
     command: ["echo"]
+
+  ports-test-postgres:
+    image: postgres:13.2
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ports
