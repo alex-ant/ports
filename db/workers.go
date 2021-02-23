@@ -47,6 +47,11 @@ func (c *Client) InsertPortInfo(pi *ports.PortInfo) error {
 		code = $12
 	`
 
+	var lat, lng float32
+	if len(pi.Coordinates) == 2 {
+		lat, lng = pi.Coordinates[0], pi.Coordinates[1]
+	}
+
 	_, err := c.pool.Exec(
 		stmt,
 		pi.Id,
@@ -55,8 +60,8 @@ func (c *Client) InsertPortInfo(pi *ports.PortInfo) error {
 		pi.Country,
 		pi.Alias,
 		pi.Regions,
-		pi.Coordinates[0],
-		pi.Coordinates[1],
+		lat,
+		lng,
 		pi.Province,
 		pi.Timezone,
 		pi.Unlocs,

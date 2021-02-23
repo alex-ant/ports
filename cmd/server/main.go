@@ -36,12 +36,12 @@ func main() {
 		log.Fatalf("failed to listen on :%d: %v", *config.GRPCPort, lisErr)
 	}
 
-	grpcServer := grpc.NewServer()
-
 	ps, psErr := ports.NewServer(dbClient)
 	if lisErr != nil {
 		log.Fatalf("failed to initialize ports gRPC server: %v", psErr)
 	}
+
+	grpcServer := grpc.NewServer()
 
 	ports.RegisterPortServiceServer(grpcServer, ps)
 
