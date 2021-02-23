@@ -9,6 +9,13 @@ import (
 
 var (
 	SourceFile = flag.String("source-file", "ports.json", "Ports source file")
+
+	DBUser    = flag.String("db-user", "postgres", "DB user")
+	DBPass    = flag.String("db-pass", "postgres", "DB pass")
+	DBHost    = flag.String("db-host", "ports-test-postgres", "DB host")
+	DBPort    = flag.Int("db-port", 5432, "DB port")
+	DBName    = flag.String("db-name", "ports", "DB name")
+	DBTimeout = flag.Int("db-timeout", 30, "DB connection timeout in seconds")
 )
 
 // Parse parses the incomning flags and extracts the environment variables.
