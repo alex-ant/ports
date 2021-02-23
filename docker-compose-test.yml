@@ -1,0 +1,8 @@
+version: "3.1"
+services:
+  ports-test:
+    image: golang:1.16
+    volumes:
+      - "./:/go/src/github.com/alex-ant/ports"
+    working_dir: /go/src/github.com/alex-ant/ports
+    command: ["echo"]
