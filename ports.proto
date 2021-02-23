@@ -16,10 +16,15 @@ message PortInfo{
     string code = 11;
 }
 
+message MultiplePortInfo{
+    repeated PortInfo ports = 1;
+}
+
 message Empty {}
 
 service PortService{
     rpc StorePortInfo(PortInfo) returns (Empty) {}
+    rpc FetchPortInfo(Empty) returns (MultiplePortInfo) {}
     rpc Ping(Empty) returns (Empty) {}
 }
 

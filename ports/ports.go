@@ -9,6 +9,7 @@ import (
 // Storage defines storage interface.
 type Storage interface {
 	InsertPortInfo(pi *PortInfo) error
+	FetchPortInfo() (map[string]*PortInfo, error)
 }
 
 // Server defines ports gRPC server.
@@ -42,4 +43,23 @@ func (s *Server) StorePortInfo(ctx context.Context, pi *PortInfo) (*Empty, error
 	}
 
 	return new(Empty), nil
+}
+
+// FetchPortInfo fetches and returns all port info.
+func (s *Server) FetchPortInfo(context.Context, *Empty) (*MultiplePortInfo, error) {
+	pii, piiErr := s.storage.FetchPortInfo()
+	if piiErr != nil {
+		return nil, fmt.Errorf("failed to fetch port info from the DB: %v", piiErr)
+	}
+
+	res := make([]*PortInfo, len(pii))
+	var c int
+	for _, pi := range pii {
+		res[c] = pi
+		c++
+	}
+
+	return &MultiplePortInfo{
+		Ports: res,
+	}, nil
 }

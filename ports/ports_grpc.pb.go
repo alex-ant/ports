@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PortServiceClient interface {
 	StorePortInfo(ctx context.Context, in *PortInfo, opts ...grpc.CallOption) (*Empty, error)
+	FetchPortInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MultiplePortInfo, error)
 	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
@@ -39,6 +40,15 @@ func (c *portServiceClient) StorePortInfo(ctx context.Context, in *PortInfo, opt
 	return out, nil
 }
 
+func (c *portServiceClient) FetchPortInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*MultiplePortInfo, error) {
+	out := new(MultiplePortInfo)
+	err := c.cc.Invoke(ctx, "/PortService/FetchPortInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *portServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/PortService/Ping", in, out, opts...)
@@ -53,6 +63,7 @@ func (c *portServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.Ca
 // for forward compatibility
 type PortServiceServer interface {
 	StorePortInfo(context.Context, *PortInfo) (*Empty, error)
+	FetchPortInfo(context.Context, *Empty) (*MultiplePortInfo, error)
 	Ping(context.Context, *Empty) (*Empty, error)
 	mustEmbedUnimplementedPortServiceServer()
 }
@@ -63,6 +74,9 @@ type UnimplementedPortServiceServer struct {
 
 func (UnimplementedPortServiceServer) StorePortInfo(context.Context, *PortInfo) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StorePortInfo not implemented")
+}
+func (UnimplementedPortServiceServer) FetchPortInfo(context.Context, *Empty) (*MultiplePortInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FetchPortInfo not implemented")
 }
 func (UnimplementedPortServiceServer) Ping(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
@@ -98,6 +112,24 @@ func _PortService_StorePortInfo_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PortService_FetchPortInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PortServiceServer).FetchPortInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PortService/FetchPortInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PortServiceServer).FetchPortInfo(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _PortService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -126,6 +158,10 @@ var PortService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StorePortInfo",
 			Handler:    _PortService_StorePortInfo_Handler,
+		},
+		{
+			MethodName: "FetchPortInfo",
+			Handler:    _PortService_FetchPortInfo_Handler,
 		},
 		{
 			MethodName: "Ping",
