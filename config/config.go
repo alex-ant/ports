@@ -8,6 +8,8 @@ import (
 )
 
 var (
+	APIPort = flag.Int("api-port", 8080, "API port")
+
 	SourceFile = flag.String("source-file", "ports.json", "Ports source file")
 
 	DBUser    = flag.String("db-user", "postgres", "DB user")

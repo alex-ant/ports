@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/alex-ant/envs v0.0.0-20180605211528-ff120f8dc147
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/go-zoo/bone v1.3.0
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/protobuf v1.4.3

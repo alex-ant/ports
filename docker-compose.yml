@@ -29,6 +29,9 @@ services:
     depends_on:
       - port-domain
     environment:
+      - API_PORT=8080
       - PORT_DOMAIN_HOST=port-domain
       - GRPC_PORT=9000
       - SOURCE_FILE=ports.json
+    ports:
+      - "8080:8080"

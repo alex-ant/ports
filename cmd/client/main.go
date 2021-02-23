@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alex-ant/ports/api"
 	"github.com/alex-ant/ports/config"
 	"github.com/alex-ant/ports/ports"
 	"github.com/alex-ant/ports/source"
@@ -36,9 +37,55 @@ func main() {
 		}
 	}
 
+	// Read source file.
+	sr, srErr := source.NewReader(*config.SourceFile)
+	if srErr != nil {
+		log.Fatalf("failed to init source file reader: %v", srErr)
+	}
+
+	log.Println("Reading source JSON")
+
+	var cout int
+	readErr := sr.Read(func(pi *ports.PortInfo) error {
+		_, storeErr := c.StorePortInfo(context.Background(), pi)
+		cout++
+		return storeErr
+	})
+	if readErr != nil {
+		log.Fatalf("failed to read source file: %v", readErr)
+	}
+
+	log.Printf("Finished reading source JSON, %d records processed", cout)
+
+	// Initialize API HTTP server.
+	apiServer, apiServerErr := api.New(
+		*config.APIPort,
+		func() ([]*ports.PortInfo, error) {
+			fetchedPortInfo, fetchedPortInfoErr := c.FetchPortInfo(context.Background(), new(ports.Empty))
+			if fetchedPortInfoErr != nil {
+				return nil, fmt.Errorf("failed to fetch port info: %v", fetchedPortInfoErr)
+			}
+			return fetchedPortInfo.Ports, nil
+		},
+	)
+	if apiServerErr != nil {
+		log.Fatal(apiServerErr)
+	}
+
+	// Start API HTTP server.
+	apiStartErr := apiServer.Start()
+	if apiStartErr != nil {
+		log.Fatal(apiStartErr)
+	}
+
+	log.Printf("Started API server on port %d", *config.APIPort)
+
 	// Shut down on SIGINT and SIGTERM.
 	shutdown := func() {
 		log.Println("Shutting down gracefully..")
+
+		// Stop API server.
+		apiServer.Stop()
 
 		// Close gRPC client connection.
 		grpcConn.Close()
@@ -60,26 +107,6 @@ func main() {
 	}()
 
 	log.Println("Successfully started")
-
-	// Read source file.
-	sr, srErr := source.NewReader(*config.SourceFile)
-	if srErr != nil {
-		log.Fatalf("failed to init source file reader: %v", srErr)
-	}
-
-	log.Println("Reading source JSON")
-
-	var cout int
-	readErr := sr.Read(func(pi *ports.PortInfo) error {
-		_, storeErr := c.StorePortInfo(context.Background(), pi)
-		cout++
-		return storeErr
-	})
-	if readErr != nil {
-		log.Fatalf("failed to read source file: %v", readErr)
-	}
-
-	log.Printf("Finished reading source JSON, %d records processed", cout)
 
 	// Keep the process running.
 	select {}
