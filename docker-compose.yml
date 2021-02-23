@@ -9,10 +9,10 @@ services:
     ports:
       - "5432:5432"
 
-  ports-server:
+  port-domain:
     build:
       context: ./
-      dockerfile: Dockerfile-server
+      dockerfile: Dockerfile-port-domain
     depends_on:
       - ports-postgres
     environment:
@@ -27,8 +27,8 @@ services:
       context: ./
       dockerfile: Dockerfile-client
     depends_on:
-      - ports-server
+      - port-domain
     environment:
-      - SERVER_HOST=ports-server
+      - PORT_DOMAIN_HOST=port-domain
       - GRPC_PORT=9000
       - SOURCE_FILE=ports.json

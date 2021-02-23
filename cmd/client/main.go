@@ -17,18 +17,18 @@ import (
 
 func main() {
 	// Establish client gRPC connection.
-	grpcConn, grpcConnErr := grpc.Dial(fmt.Sprintf("%s:%d", *config.ServerHost, *config.GRPCPort), grpc.WithInsecure())
+	grpcConn, grpcConnErr := grpc.Dial(fmt.Sprintf("%s:%d", *config.PortDomainHost, *config.GRPCPort), grpc.WithInsecure())
 	if grpcConnErr != nil {
 		log.Fatalf("failed to establish client gRPC connection: %v", grpcConnErr)
 	}
 
 	c := ports.NewPortServiceClient(grpcConn)
 
-	// Ping server, wait for it to become alive.
+	// Ping port domain, wait for it to become alive.
 	for {
 		_, pingErr := c.Ping(context.Background(), new(ports.Empty))
 		if pingErr != nil {
-			log.Println("gRPC server ping failed, retrying in 1 second")
+			log.Println("gRPC port domain server ping failed, retrying in 1 second")
 			time.Sleep(time.Second)
 		} else {
 			log.Println("gRPC connection established")
@@ -67,13 +67,19 @@ func main() {
 		log.Fatalf("failed to init source file reader: %v", srErr)
 	}
 
+	log.Println("Reading source JSON")
+
+	var cout int
 	readErr := sr.Read(func(pi *ports.PortInfo) error {
 		_, storeErr := c.StorePortInfo(context.Background(), pi)
+		cout++
 		return storeErr
 	})
 	if readErr != nil {
 		log.Fatalf("failed to read source file: %v", readErr)
 	}
+
+	log.Printf("Finished reading source JSON, %d records processed", cout)
 
 	// Keep the process running.
 	select {}

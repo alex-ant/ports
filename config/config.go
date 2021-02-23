@@ -17,8 +17,8 @@ var (
 	DBName    = flag.String("db-name", "ports", "DB name")
 	DBTimeout = flag.Int("db-timeout", 30, "DB connection timeout in seconds")
 
-	GRPCPort   = flag.Int("grpc-port", 9000, "gPRC connection port")
-	ServerHost = flag.String("server-host", "ports-server", "gRPC server host")
+	GRPCPort       = flag.Int("grpc-port", 9000, "gPRC connection port")
+	PortDomainHost = flag.String("port-domain-host", "port-domain", "gRPC port domain host")
 )
 
 // Parse parses the incomning flags and extracts the environment variables.

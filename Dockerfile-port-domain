@@ -3,7 +3,7 @@ FROM golang:1.16.0-alpine3.13 AS build-env
 RUN apk add --update --no-cache git
 RUN go get -u github.com/gobuffalo/packr/packr
 COPY . /go/src/github.com/alex-ant/ports
-WORKDIR /go/src/github.com/alex-ant/ports/cmd/server
+WORKDIR /go/src/github.com/alex-ant/ports/cmd/port_domain
 RUN packr build -o dist/goapp
 
 # Build image.
@@ -12,5 +12,5 @@ RUN  apk update && apk upgrade \
     && apk add --no-cache ca-certificates \
     && update-ca-certificates
 WORKDIR /app
-COPY --from=build-env /go/src/github.com/alex-ant/ports/cmd/server/dist/goapp /app/
+COPY --from=build-env /go/src/github.com/alex-ant/ports/cmd/port_domain/dist/goapp /app/
 ENTRYPOINT ./goapp
