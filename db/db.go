@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -20,8 +19,6 @@ const (
 	migrationsDir   string = "./migrations"
 	migrationsTable string = "ports-migrations"
 )
-
-var migrationsMu sync.Mutex
 
 // Client contains connection data.
 type Client struct {
@@ -93,9 +90,6 @@ func New(user, pass, host string, port int, dbName string, timeout int) (c *Clie
 }
 
 func runDatabaseMigrations(user, pass, host string, port int, dbName string) error {
-	migrationsMu.Lock()
-	defer migrationsMu.Unlock()
-
 	var db *sql.DB
 	var dbErr error
 
