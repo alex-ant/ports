@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInsertPortInfo(t *testing.T) {
+func TestInsertAndFetchPortInfo(t *testing.T) {
 	// Define test port data.
 	testPorts := map[string]*ports.PortInfo{
 		"AEAJM": {
@@ -44,65 +44,11 @@ func TestInsertPortInfo(t *testing.T) {
 		require.NoError(t, insertErr)
 	}
 
-	// Validate DB records.
-	validateSTMT := `
-		SELECT id,
-			name,
-			city,
-			country,
-			alias,
-			regions,
-			lat,
-			lng,
-			province,
-			timezone,
-			unlocs,
-			code
-		FROM ports
-		ORDER BY code
-	`
-
-	fetchPorts := func() map[string]*ports.PortInfo {
-		resMap := make(map[string]*ports.PortInfo)
-
-		rows, rowsErr := testClient.pool.Query(validateSTMT)
-		if rowsErr != nil {
-			require.NoError(t, rowsErr)
-		}
-
-		defer rows.Close()
-		for rows.Next() {
-			var pi ports.PortInfo
-			pi.Coordinates = make([]float32, 2)
-
-			if scanErr := rows.Scan(
-				&pi.Id,
-				&pi.Name,
-				&pi.City,
-				&pi.Country,
-				&pi.Alias,
-				&pi.Regions,
-				&pi.Coordinates[0],
-				&pi.Coordinates[1],
-				&pi.Province,
-				&pi.Timezone,
-				&pi.Unlocs,
-				&pi.Code,
-			); scanErr != nil {
-				require.NoError(t, scanErr)
-			}
-
-			resMap[pi.Id] = &pi
-		}
-		if err := rows.Err(); err != nil {
-			require.NoError(t, err)
-		}
-
-		return resMap
-	}
-
 	// Compare results.
-	require.Equal(t, testPorts, fetchPorts())
+	res, resErr := testClient.FetchPortInfo()
+	require.NoError(t, resErr)
+
+	require.Equal(t, testPorts, res)
 
 	// Update records.
 	newTestPI := ports.PortInfo{
@@ -125,5 +71,8 @@ func TestInsertPortInfo(t *testing.T) {
 	testPorts["AEAJM"] = &newTestPI
 
 	// Compare updated results.
-	require.Equal(t, testPorts, fetchPorts())
+	res, resErr = testClient.FetchPortInfo()
+	require.NoError(t, resErr)
+
+	require.Equal(t, testPorts, res)
 }
